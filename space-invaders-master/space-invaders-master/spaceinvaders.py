@@ -12,14 +12,14 @@ SOUND_PATH = BASE_PATH + '/sounds/'
 WHITE = (255, 255, 255)
 
 SCREEN = display.set_mode((800, 600))
-IMG_NAMES = ['enemy1_1', 'enemy1_2', 'enemy2_1', 'enemy2_2', 'enemy3_1', 'enemy3_2']
-IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha()
+IMG_NAMES = ['enemy1_1', 'enemy1_2', 'enemy2_1', 'enemy2_2', 'enemy3_1', 'enemy3_2'] #tekiNo.
+IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha() #teki png. 
           for name in IMG_NAMES}
 
 ENEMY_DEFAULT_POSITION = 65  # Initial value for a new game
 ENEMY_MOVE_DOWN = 35
 
-class Enemy(sprite.Sprite):
+class Enemy(sprite.Sprite): #tekiclass
     def __init__(self, row, column):
         sprite.Sprite.__init__(self)
         self.row = row
@@ -30,13 +30,13 @@ class Enemy(sprite.Sprite):
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
 
-    def toggle_image(self):
+    def toggle_image(self): #kurikaesi
         self.index += 1
         if self.index >= len(self.images):
             self.index = 0
         self.image = self.images[self.index]
 
-    def load_images(self):
+    def load_images(self): #tekishuturyoku
         images = {0: ['1_2', '1_1'],
                   1: ['2_2', '2_1'],
                   2: ['2_2', '2_1'],
@@ -48,7 +48,7 @@ class Enemy(sprite.Sprite):
         self.images.append(transform.scale(img1, (40, 35)))
         self.images.append(transform.scale(img2, (40, 35)))
 
-class EnemiesGroup(sprite.Group):
+class EnemiesGroup(sprite.Group): #tekigroup
     def __init__(self, columns, rows):
         sprite.Group.__init__(self)
         self.enemies = [[None] * columns for _ in range(rows)]
@@ -62,7 +62,7 @@ class EnemiesGroup(sprite.Group):
         self.timer = time.get_ticks()
         self.bottom = ENEMY_DEFAULT_POSITION + ((rows - 1) * 45) + 35
 
-    def update(self, current_time):
+    def update(self, current_time): 
         if current_time - self.timer > self.moveTime:
             if self.direction == 1:
                 max_move = self.rightMoves
@@ -123,10 +123,10 @@ def main():
         display.update()
         clock.tick(60)
 
-class SpaceInvaders(object):
+class SpaceInvaders(object): #tekimatome
     def __init__(self):
         self.screen = SCREEN
-        self.background = image.load(IMAGE_PATH + 'background.jpg').convert()
+        self.background = image.load(IMAGE_PATH + 'background.jpg').convert() #haikei
         self.enemies = EnemiesGroup(10, 5)
         self.allSprites = sprite.Group()
         self.make_enemies()
@@ -139,7 +139,7 @@ class SpaceInvaders(object):
         self.allSprites.add(self.enemies)
         self.score = score
 
-    def make_enemies(self):
+    def make_enemies(self): 
         for row in range(5):
             for column in range(10):
                 enemy = Enemy(row, column)
