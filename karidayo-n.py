@@ -1,5 +1,4 @@
 from pygame import *
-import sys
 from os.path import abspath, dirname
 from random import choice
 
@@ -46,8 +45,11 @@ class Ship(sprite.Sprite):
             self.rect.x += self.speed
         game.screen.blit(self.image, self.rect)
 
-"敵に弾丸を発射する"
+
 class Bullet(sprite.Sprite):
+    """
+    ビーム砲のクラス
+    """
     def __init__(self, xpos, ypos, direction, speed, filename, side):
         sprite.Sprite.__init__(self)
         self.image = IMAGES[filename]
@@ -63,8 +65,11 @@ class Bullet(sprite.Sprite):
         if self.rect.y < 15 or self.rect.y > 600:
             self.kill()
 
-"敵一体ずつの動き"
+
 class Enemy(sprite.Sprite):
+    """
+    インベーダーのクラス
+    """
     def __init__(self, row, column):
         sprite.Sprite.__init__(self)
         self.row = row
@@ -96,8 +101,11 @@ class Enemy(sprite.Sprite):
         self.images.append(transform.scale(img1, (40, 35)))
         self.images.append(transform.scale(img2, (40, 35)))
 
-"敵全体の動き"
+
 class EnemiesGroup(sprite.Group):
+    """
+    インベーダーの動きのクラス
+    """
     def __init__(self, columns, rows):
         sprite.Group.__init__(self)
         self.enemies = [[None] * columns for _ in range(rows)]
@@ -188,8 +196,11 @@ class EnemiesGroup(sprite.Group):
                 self.leftAddMove += 5
                 is_column_dead = self.is_column_dead(self._leftAliveColumn)
 
-"敵から身を守るブロッカー"
+
 class Blocker(sprite.Sprite):
+    """
+    ブロックのクラス
+    """
     def __init__(self, size, color, row, column):
         sprite.Sprite.__init__(self)
         self.height = size
@@ -204,8 +215,11 @@ class Blocker(sprite.Sprite):
     def update(self, keys, *args):
         game.screen.blit(self.image, self.rect)
 
-"敵の母艦"
+
 class Mystery(sprite.Sprite):
+    """
+    敵母艦のクラス
+    """
     def __init__(self):
         sprite.Sprite.__init__(self)
         self.image = IMAGES['mystery']
@@ -246,8 +260,73 @@ class Mystery(sprite.Sprite):
         if passed > self.moveTime and resetTimer:
             self.timer = currentTime
 
-"こうかとんのライフ"
+
+class EnemyExplosion(sprite.Sprite):
+    """
+    インベーダーが爆発するクラス
+    """
+    def __init__(self, enemy, *groups):
+        super(EnemyExplosion, self).__init__(*groups)
+        self.image = transform.scale(self.get_image(enemy.row), (40, 35))
+        self.image2 = transform.scale(self.get_image(enemy.row), (50, 45))
+        self.rect = self.image.get_rect(topleft=(enemy.rect.x, enemy.rect.y))
+        self.timer = time.get_ticks()
+
+    @staticmethod
+    def get_image(row):
+        img_colors = ['purple', 'blue', 'blue', 'green', 'green']
+        return IMAGES['explosion{}'.format(img_colors[row])]
+
+    def update(self, current_time, *args):
+        passed = current_time - self.timer
+        if passed <= 100:
+            game.screen.blit(self.image, self.rect)
+        elif passed <= 200:
+            game.screen.blit(self.image2, (self.rect.x - 6, self.rect.y - 6))
+        elif 400 < passed:
+            self.kill()
+
+
+class MysteryExplosion(sprite.Sprite):
+    """
+    敵母艦が爆発するクラス
+    """
+    def __init__(self, mystery, score, *groups):
+        super(MysteryExplosion, self).__init__(*groups)
+        self.text = Text(FONT, 20, str(score), WHITE,
+                         mystery.rect.x + 20, mystery.rect.y + 6)
+        self.timer = time.get_ticks()
+
+    def update(self, current_time, *args):
+        passed = current_time - self.timer
+        if passed <= 200 or 400 < passed <= 600:
+            self.text.draw(game.screen)
+        elif 600 < passed:
+            self.kill()
+
+
+class ShipExplosion(sprite.Sprite):
+    """
+    こうかとんが爆発するクラス
+    """
+    def __init__(self, ship, *groups):
+        super(ShipExplosion, self).__init__(*groups)
+        self.image = IMAGES['kokaton']
+        self.rect = self.image.get_rect(topleft=(ship.rect.x, ship.rect.y))
+        self.timer = time.get_ticks()
+
+    def update(self, current_time, *args):
+        passed = current_time - self.timer
+        if 300 < passed <= 600:
+            game.screen.blit(self.image, self.rect)
+        elif 900 < passed:
+            self.kill()
+
+
 class Life(sprite.Sprite):
+    """
+    こうかとんの残機のクラス
+    """
     def __init__(self, xpos, ypos):
         sprite.Sprite.__init__(self)
         self.image = IMAGES['kokaton']
@@ -257,8 +336,11 @@ class Life(sprite.Sprite):
     def update(self, *args):
         game.screen.blit(self.image, self.rect)
 
-"テキスト"
+
 class Text(object):
+    """
+    ゲーム内で使用されるテキストのクラス
+    """
     def __init__(self, textFont, size, message, color, xpos, ypos):
         self.font = font.Font(textFont, size)
         self.surface = self.font.render(message, True, color)
@@ -267,9 +349,14 @@ class Text(object):
     def draw(self, surface):
         surface.blit(self.surface, self.rect)
 
-"それぞれのクラスの実行"
+
 class SpaceInvaders(object):
+    """
+    それぞれのクラスを実行するクラス
+    """
     def __init__(self):
+        # It seems, in Linux buffersize=512 is not enough, use 4096 to prevent:
+        #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
         self.clock = time.Clock()
@@ -434,6 +521,80 @@ class SpaceInvaders(object):
         self.screen.blit(self.enemy3, (318, 370))
         self.screen.blit(self.enemy4, (299, 420))
 
+    def check_collisions(self):
+        sprite.groupcollide(self.bullets, self.enemyBullets, True, True)
+
+        for enemy in sprite.groupcollide(self.enemies, self.bullets,
+                                         True, True).keys():
+            self.sounds['invaderkilled'].play()
+            self.calculate_score(enemy.row)
+            EnemyExplosion(enemy, self.explosionsGroup)
+            self.gameTimer = time.get_ticks()
+
+        for mystery in sprite.groupcollide(self.mysteryGroup, self.bullets,
+                                           True, True).keys():
+            mystery.mysteryEntered.stop()
+            self.sounds['mysterykilled'].play()
+            score = self.calculate_score(mystery.row)
+            MysteryExplosion(mystery, score, self.explosionsGroup)
+            newShip = Mystery()
+            self.allSprites.add(newShip)
+            self.mysteryGroup.add(newShip)
+
+        for player in sprite.groupcollide(self.playerGroup, self.enemyBullets,
+                                          True, True).keys():
+            if self.life3.alive():
+                self.life3.kill()
+            elif self.life2.alive():
+                self.life2.kill()
+            elif self.life1.alive():
+                self.life1.kill()
+            else:
+                self.gameOver = True
+                self.startGame = False
+            self.sounds['shipexplosion'].play()
+            ShipExplosion(player, self.explosionsGroup)
+            self.makeNewShip = True
+            self.shipTimer = time.get_ticks()
+            self.shipAlive = False
+
+        if self.enemies.bottom >= 540:
+            sprite.groupcollide(self.enemies, self.playerGroup, True, True)
+            if not self.player.alive() or self.enemies.bottom >= 600:
+                self.gameOver = True
+                self.startGame = False
+
+        sprite.groupcollide(self.bullets, self.allBlockers, True, True)
+        sprite.groupcollide(self.enemyBullets, self.allBlockers, True, True)
+        if self.enemies.bottom >= BLOCKERS_POSITION:
+            sprite.groupcollide(self.enemies, self.allBlockers, False, True)
+
+    def create_new_ship(self, createShip, currentTime):
+        if createShip and (currentTime - self.shipTimer > 900):
+            self.player = Ship()
+            self.allSprites.add(self.player)
+            self.playerGroup.add(self.player)
+            self.makeNewShip = False
+            self.shipAlive = True
+
+    def create_game_over(self, currentTime):
+        self.screen.blit(self.background, (0, 0))
+        passed = currentTime - self.timer
+        if passed < 750:
+            self.gameOverText.draw(self.screen)
+        elif 750 < passed < 1500:
+            self.screen.blit(self.background, (0, 0))
+        elif 1500 < passed < 2250:
+            self.gameOverText.draw(self.screen)
+        elif 2250 < passed < 2750:
+            self.screen.blit(self.background, (0, 0))
+        elif passed > 3000:
+            self.mainScreen = True
+
+        for e in event.get():
+            if self.should_exit(e):
+                sys.exit()
+
     def main(self):
         while True:
             if self.mainScreen:
@@ -491,6 +652,8 @@ class SpaceInvaders(object):
                     self.enemies.update(currentTime)
                     self.allSprites.update(self.keys, currentTime)
                     self.explosionsGroup.update(currentTime)
+                    self.check_collisions()
+                    self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
 
             elif self.gameOver:
@@ -506,3 +669,4 @@ class SpaceInvaders(object):
 if __name__ == '__main__':
     game = SpaceInvaders()
     game.main()
+    sys.exit()
