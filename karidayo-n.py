@@ -30,9 +30,9 @@ ENEMY_DEFAULT_POSITION = 65
 ENEMY_MOVE_DOWN = 35
 
 class Ship(sprite.Sprite):
-  """
-  こうかとん生成のクラス
-  """
+    """
+    こうかとん生成のクラス
+    """
     def __init__(self):
         sprite.Sprite.__init__(self)
         self.image = IMAGES['kokaton']
