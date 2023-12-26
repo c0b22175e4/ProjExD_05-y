@@ -7,7 +7,6 @@ FONT_PATH = BASE_PATH + '/fonts/'
 IMAGE_PATH = BASE_PATH + '/images/'
 SOUND_PATH = BASE_PATH + '/sounds/'
 
-# Colors (R, G, B)
 WHITE = (255, 255, 255)
 GREEN = (78, 255, 87)
 YELLOW = (241, 255, 0)
@@ -27,11 +26,13 @@ IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha()
           for name in IMG_NAMES}
 
 BLOCKERS_POSITION = 450
-ENEMY_DEFAULT_POSITION = 65  # Initial value for a new game
+ENEMY_DEFAULT_POSITION = 65
 ENEMY_MOVE_DOWN = 35
 
-"こうかとん生成"
 class Ship(sprite.Sprite):
+  """
+  こうかとん生成のクラス
+  """
     def __init__(self):
         sprite.Sprite.__init__(self)
         self.image = IMAGES['kokaton']
@@ -355,8 +356,6 @@ class SpaceInvaders(object):
     それぞれのクラスを実行するクラス
     """
     def __init__(self):
-        # It seems, in Linux buffersize=512 is not enough, use 4096 to prevent:
-        #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
         self.clock = time.Clock()
@@ -366,7 +365,6 @@ class SpaceInvaders(object):
         self.startGame = False
         self.mainScreen = True
         self.gameOver = False
-        # Counter for enemy starting position (increased each new round)
         self.enemyPosition = ENEMY_DEFAULT_POSITION
         self.titleText = Text(FONT, 50, 'Kokaton Invaders', WHITE, 130, 155)
         self.titleText2 = Text(FONT, 25, 'Press any key to continue', WHITE,
@@ -444,7 +442,6 @@ class SpaceInvaders(object):
 
     @staticmethod
     def should_exit(evt):
-        # type: (pygame.event.EventType) -> bool
         return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
 
     def check_input(self):
@@ -658,7 +655,6 @@ class SpaceInvaders(object):
 
             elif self.gameOver:
                 currentTime = time.get_ticks()
-                # Reset enemy starting position
                 self.enemyPosition = ENEMY_DEFAULT_POSITION
                 self.create_game_over(currentTime)
 
